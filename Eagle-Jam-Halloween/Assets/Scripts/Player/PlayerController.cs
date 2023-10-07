@@ -9,22 +9,26 @@ public class PlayerController : MonoBehaviour
     float rotationSpeed = 55;
     [SerializeField]
     float moveSpeed = 5f;
-    private Rigidbody rigidbody;
+    [SerializeField]
+    float backwardsMoveSpeed = 5f;
+    // private Rigidbody rigidbody;
+    private Animator animator;
 
-    private enum PlayerState 
+    public enum PlayerState 
     {
         Idle,
-        Moving
+        Moving, 
+        Looting
     }
 
     private PlayerState playerState = PlayerState.Idle;
 
     private void Start() {
-        rigidbody = GetComponent<Rigidbody>();    
+        // rigidbody = GetComponent<Rigidbody>();    
+        animator = GetComponent<Animator>();
     }
 
     private void Update() {
-        // MovePlayer();
         HandleInput();
         HandleState();
     }
@@ -43,16 +47,32 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    public void ChangeState(PlayerState newState) {
+        if(newState == PlayerState.Moving) {
+            playerState = PlayerState.Moving;
+        } else if(newState == PlayerState.Idle) {
+            playerState = PlayerState.Idle;
+        } else if(newState == PlayerState.Looting) {
+            playerState = PlayerState.Looting;
+        }
+    }
+
     void HandleState() 
     {
         switch(playerState) 
         {
             case PlayerState.Idle:
+                animator.SetBool("isWalking", false);
+                animator.SetBool("isWalkingBackwards", false);
+                animator.SetBool("Looting", false);
                 PlayerRotation();
                 break;
             case PlayerState.Moving:
                 PlayerRotation();
                 MovePlayer();
+                break;
+            case PlayerState.Looting:
+                Looting();
                 break;
         }
     }
@@ -66,10 +86,14 @@ public class PlayerController : MonoBehaviour
         }
 
         if(Input.GetKey(KeyCode.W)) {
+            animator.SetBool("isWalking", true);
+            animator.SetBool("isWalkingBackwards", false);
             transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime);
             // playerAnim.SetBool("isWalking", true);
         } else if(Input.GetKey(KeyCode.S)) {
-            transform.Translate(Vector3.back * moveSpeed * Time.deltaTime);
+            animator.SetBool("isWalking", false);
+            animator.SetBool("isWalkingBackwards", true);
+            transform.Translate(Vector3.back * backwardsMoveSpeed * Time.deltaTime);
             // playerAnim.SetBool("isWalkingBackwords", true);
         }
     }
@@ -81,5 +105,11 @@ public class PlayerController : MonoBehaviour
         if(Input.GetKey(KeyCode.D)) {
             transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
         }
+    }
+
+    void Looting() {
+        animator.SetBool("isWalking", false);
+        animator.SetBool("isWalkingBackwards", false);
+        animator.SetBool("Looting", true);
     }
 }
