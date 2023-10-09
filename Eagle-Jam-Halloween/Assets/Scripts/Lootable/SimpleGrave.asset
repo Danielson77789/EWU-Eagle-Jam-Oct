@@ -13,3 +13,6 @@ MonoBehaviour:
   m_Name: SimpleGrave
   m_EditorClassIdentifier: 
   value: 10
+  WaitForSeconds: 10
+  lootable: 1
+  lootedMesh: {fileID: 4300000, guid: cc60d24a92f1f7d45b67e0cfdecf1737, type: 2}

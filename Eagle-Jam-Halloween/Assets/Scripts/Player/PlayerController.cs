@@ -18,7 +18,8 @@ public class PlayerController : MonoBehaviour
     {
         Idle,
         Moving, 
-        Looting
+        Looting,
+        Attacking
     }
 
     private PlayerState playerState = PlayerState.Idle;
@@ -38,9 +39,15 @@ public class PlayerController : MonoBehaviour
         if(playerState == PlayerState.Idle) {
             if(Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.S)) {
                 playerState = PlayerState.Moving;
+            } else if(Input.GetMouseButton(0)) {
+                playerState = PlayerState.Attacking;
             }
         } else if(playerState == PlayerState.Moving) {
             if(Input.GetKeyUp(KeyCode.W) || Input.GetKeyUp(KeyCode.S)) {
+                playerState = PlayerState.Idle;
+            }
+        } else if(playerState == PlayerState.Attacking) {
+            if (animator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.5 && !animator.IsInTransition(0)) {
                 playerState = PlayerState.Idle;
             }
         }
@@ -65,6 +72,7 @@ public class PlayerController : MonoBehaviour
                 animator.SetBool("isWalking", false);
                 animator.SetBool("isWalkingBackwards", false);
                 animator.SetBool("Looting", false);
+                animator.SetBool("isAttacking", false);
                 PlayerRotation();
                 break;
             case PlayerState.Moving:
@@ -73,6 +81,9 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerState.Looting:
                 Looting();
+                break;
+            case PlayerState.Attacking:
+                BasicAttack();
                 break;
         }
     }
@@ -99,11 +110,22 @@ public class PlayerController : MonoBehaviour
     }
 
     void PlayerRotation() {
-        if(Input.GetKey(KeyCode.A)) {
-            transform.Rotate(Vector3.up * -rotationSpeed * Time.deltaTime);
-        }
-        if(Input.GetKey(KeyCode.D)) {
-            transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
+        // if(Input.GetKey(KeyCode.A)) {
+        //     transform.Rotate(Vector3.up * -rotationSpeed * Time.deltaTime);
+        // }
+        // if(Input.GetKey(KeyCode.D)) {
+        //     transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
+        // }
+        Plane plane = new Plane(Vector3.up, Vector3.zero);
+        var rayCast = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+        if(plane.Raycast(rayCast, out var enter)) {
+            var lookPoint = rayCast.GetPoint(enter);
+            lookPoint.y = transform.position.y;
+            // Just here for debug purposes
+            // Debug.DrawLine(rayCast.origin, lookPoint, Color.red);
+            // Debug.DrawRay(lookPoint, Vector3.up, Color.green);
+            transform.LookAt(lookPoint);
         }
     }
 
@@ -111,5 +133,18 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("isWalking", false);
         animator.SetBool("isWalkingBackwards", false);
         animator.SetBool("Looting", true);
+    }
+
+    private void BasicAttack() {
+        animator.SetBool("isAttacking", true);
+    }
+
+    private void OnTriggerEnter(Collider other) {
+        if(playerState == PlayerState.Attacking) {
+            if(other.tag == "Enemy") {
+                Debug.Log("Enemy");
+                other.GetComponent<EnemyController>().TakeDamage(10);
+            }
+        }
     }
 }
