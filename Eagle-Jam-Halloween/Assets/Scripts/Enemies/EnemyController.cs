@@ -51,7 +51,7 @@ public class EnemyController : MonoBehaviour
         if(walkPointSet) {
             agent.SetDestination(walkPoint);
         }
-
+        transform.LookAt(walkPoint);
         Vector3 distanceToWalkPoint = transform.position - walkPoint;
         if(distanceToWalkPoint.magnitude < 1f) {
             if(!isResting) {
@@ -74,11 +74,13 @@ public class EnemyController : MonoBehaviour
     }
 
     private void ChasePlayer() {
-        agent.SetDestination(player.position);
+        if(!playerInAttackRange) {
+            agent.SetDestination(player.position);
+        }
+        transform.LookAt(player);
     }
 
     private void AttackPlayer() {
-        agent.SetDestination(transform.position);
         transform.LookAt(player);
 
         if(!alreadyAttacked) {
